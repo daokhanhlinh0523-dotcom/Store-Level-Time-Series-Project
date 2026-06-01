@@ -1,188 +1,211 @@
 # Store-Level Time Series Forecasting of Restaurant Visitors Using SARIMAX
 
-This repository contains the final submission for a time series forecasting project on **daily restaurant visitors**.
+## Overview
 
-Dataset source: [Recruit Restaurant Visitor Forecasting (Kaggle input page)](https://www.kaggle.com/code/headsortails/be-my-guest-recruit-restaurant-eda/input)
+This project forecasts daily restaurant visitors at the individual store level using the **Recruit Restaurant Visitor Forecasting** dataset.
 
-## Read This First
+The modeling target is:
 
-If you are grading this project, read the files in this order:
+- Forecast unit: `air_store_id x visit_date`
+- Target variable: `visitors`
+- Baseline: `Seasonal Naive (lag = 7)`
+- Benchmark: `SARIMA(1,1,1)(1,1,1)[7]`
+- Final model: `SARIMAX(1,1,1)(1,1,1)[7]` with `is_holiday`
+- Main final run tag: `main250cv`
+
+This is a **store-level forecasting** project, not a single aggregated restaurant time series.
+
+Dataset reference:
+[Recruit Restaurant Visitor Forecasting (Kaggle)](https://www.kaggle.com/code/headsortails/be-my-guest-recruit-restaurant-eda/input)
+
+## Final Results
+
+Main `main250cv` run:
+
+- Total AIR stores in raw data: `814`
+- Eligible stores after filtering: `812`
+- Stores evaluated in the main run: `250`
+- Holdout window: `2017-03-15 -> 2017-04-22`
+- Holdout rows evaluated: `9,721`
+
+Holdout `RMSLE`:
+
+- Seasonal Naive: `0.9314`
+- SARIMA no exog: `0.7255`
+- SARIMAX holiday only: `0.7098`
+
+Improvement:
+
+- SARIMA vs Naive: `22.1%`
+- SARIMAX vs Naive: `23.8%`
+- SARIMAX vs SARIMA: `2.17%`
+
+Store-level win rates:
+
+- SARIMA beats Naive on `87.2%` of stores
+- SARIMAX beats Naive on `89.2%` of stores
+- SARIMAX beats SARIMA on `67.2%` of stores
+
+## Repository Structure
+
+```text
+.
+|-- README.md
+|-- requirements.txt
+|-- src/
+|   |-- 01_data_understanding_eda.py
+|   |-- 02_data_cleaning_feature_engineering.py
+|   `-- 03_final_store_level_forecasting.py
+|-- notebooks/
+|   |-- 01_data_understanding_eda.ipynb
+|   |-- 02_data_cleaning_feature_engineering.ipynb
+|   `-- 03_final_store_level_forecasting.ipynb
+|-- report/
+|   |-- final_report.pdf
+|   |-- store_level_results.md
+|   `-- figures/
+`-- output/
+```
+
+If you want the key project files first, read:
 
 1. `README.md`
 2. `report/store_level_results.md`
 3. `report/final_report.pdf`
-4. `notebooks/03_final_store_level_forecasting.ipynb`
-5. `notebooks/02_data_cleaning_feature_engineering.ipynb`
-6. `notebooks/01_data_understanding_eda.ipynb`
+4. `src/03_final_store_level_forecasting.py`
+5. `output/store_level_summary_main250cv.json`
+6. `output/store_level_metrics_main250cv.csv`
 
-This keeps the project easy to follow:
+## Source Files
 
-- `01`: understand the data
-- `02`: clean data and build features
-- `03`: run the final store-level forecasting comparison
+- `src/01_data_understanding_eda.py`
+  Data understanding and exploratory analysis.
+- `src/02_data_cleaning_feature_engineering.py`
+  Data cleaning, duplicate handling, outlier treatment, and feature preparation.
+- `src/03_final_store_level_forecasting.py`
+  Final model comparison, rolling-origin validation, and holdout evaluation.
 
-## Final Submission Files
+## Data Requirements
 
-The main files for grading are:
+The repository does **not** include these data folders in version control:
 
-- `report/store_level_results.md`
-- `report/final_report.pdf`
-- `notebooks/03_final_store_level_forecasting.ipynb`
-- `output/store_level_summary_main250cv.json`
-- `output/store_level_metrics_main250cv.csv`
-- `output/store_level_holdout_predictions_main250cv.csv`
-- `output/store_level_cv_summary_main250cv.csv`
-- `output/store_level_ablation_metrics_main250cv.csv`
+- `notebooks/raw_Data/`
+- `notebooks/processed_data/`
 
-## How to Run
+They are excluded in `.gitignore`, so a fresh clone will not run end-to-end until the data is added locally.
+
+Expected layout:
+
+```text
+notebooks/
+|-- raw_Data/
+|   |-- air_visit_data.csv
+|   |-- air_reserve.csv
+|   |-- hpg_reserve.csv
+|   |-- air_store_info.csv
+|   |-- hpg_store_info.csv
+|   |-- date_info.csv
+|   |-- store_id_relation.csv
+|   `-- sample_submission.csv
+`-- processed_data/
+    |-- air_visits.csv
+    |-- air_reserve.csv
+    |-- hpg_reserve.csv
+    |-- air_store.csv
+    |-- holidays.csv
+    `-- store_ids.csv
+```
+
+Notes:
+
+- `src/01` and `src/02` read from `notebooks/raw_Data/`
+- `src/03` reads from `notebooks/processed_data/`
+- if processed data already exists, you can run only the final forecasting script
+
+## How To Run
+
+Run commands from the repository root.
 
 1. Create and activate a Python environment.
 2. Install dependencies:
-   `pip install -r requirements.txt`
-3. Open Jupyter Notebook:
-   `jupyter notebook`
-4. Read the project in this order:
-   `notebooks/01_data_understanding_eda.ipynb` -> `notebooks/02_data_cleaning_feature_engineering.ipynb` -> `notebooks/03_final_store_level_forecasting.ipynb`
-5. For the final result only, open:
-   `notebooks/03_final_store_level_forecasting.ipynb`
 
-The final notebook reads input data from:
+```bash
+pip install -r requirements.txt
+```
 
-- `notebooks/processed_data/`
+3. Run the scripts in order:
 
-and writes the final outputs to:
+```bash
+python src/01_data_understanding_eda.py
+python src/02_data_cleaning_feature_engineering.py
+python src/03_final_store_level_forecasting.py
+```
 
-- `output/store_level_summary_main250cv.json`
-- `output/store_level_metrics_main250cv.csv`
-- `output/store_level_holdout_predictions_main250cv.csv`
-- `output/store_level_cv_summary_main250cv.csv`
-- `output/store_level_ablation_metrics_main250cv.csv`
+If processed data already exists, you can run only:
 
-## Project Goal
-
-Forecast **daily visitors for each `air_store_id`**.
-
-This is a **store-level forecasting** project, not one aggregate time series for all restaurants combined.
+```bash
+python src/03_final_store_level_forecasting.py
+```
 
 ## Final Modeling Setup
 
-- Baseline: `Seasonal Naive (lag = 7)`
-- Benchmark model: `SARIMA(1,1,1)(1,1,1)[7]` with no exogenous regressors
-- Final model: `SARIMAX(1,1,1)(1,1,1)[7]` with `is_holiday` only
-- Run mode: `main250cv`
-- Main evaluation sample: `250` eligible stores
-- Holdout period: `2017-03-15 -> 2017-04-22`
-- Evaluation unit: pooled observed `store-date` rows
+Main evaluation setup:
 
-## Final Results
+- Main store sample: `250`
+- Holdout window: `2017-03-15 -> 2017-04-22`
+- Rolling-origin folds:
+  - `CV1`: `2017-01-15 -> 2017-01-28`
+  - `CV2`: `2017-02-01 -> 2017-02-14`
+  - `CV3`: `2017-02-15 -> 2017-02-28`
+- Primary evaluation metric: `RMSLE`
 
-- Stores total: `814`
-- Stores eligible: `812`
-- Stores targeted: `250`
-- Stores evaluated: `250`
-- Stores skipped: `0`
-- Model fallbacks: `0`
-- Holdout rows: `9,721`
-- Seasonal Naive RMSLE: `0.9314`
-- SARIMA no exog RMSLE: `0.7255`
-- SARIMAX holiday-only RMSLE: `0.7098`
-- SARIMA improvement vs Naive: `22.1%`
-- SARIMAX improvement vs Naive: `23.8%`
-- SARIMAX improvement vs SARIMA: `2.17%`
-- SARIMA better than Naive on `87.2%` of stores
-- SARIMAX better than Naive on `89.2%` of stores
-- SARIMAX better than SARIMA on `67.2%` of stores
+Modeling choices in the final script:
 
-## Rolling-Origin Validation
+- no synthetic pre-history padding
+- each store is modeled only on its observed date span
+- missing days inside the observed span are filled with `0 visitors`
+- final comparison includes `Seasonal Naive`, `SARIMA no exog`, and `SARIMAX holiday only`
 
-The final notebook also includes three rolling-origin validation folds on the same `250`-store sample:
+## Output Files
 
-- `CV1`: train to `2017-01-14`, test `2017-01-15 -> 2017-01-28`
-- `CV2`: train to `2017-01-31`, test `2017-02-01 -> 2017-02-14`
-- `CV3`: train to `2017-02-14`, test `2017-02-15 -> 2017-02-28`
+Main outputs in `output/`:
 
-Pooled RMSLE by fold:
+- `store_level_summary_main250cv.json`
+- `store_level_metrics_main250cv.csv`
+- `store_level_holdout_predictions_main250cv.csv`
+- `store_level_cv_summary_main250cv.csv`
+- `store_level_ablation_metrics_main250cv.csv`
 
-- `CV1`: Naive `1.0777`, SARIMA `0.7345`, SARIMAX `0.7162`
-- `CV2`: Naive `0.8679`, SARIMA `0.7020`, SARIMAX `0.7115`
-- `CV3`: Naive `0.9050`, SARIMA `0.6802`, SARIMAX `0.6784`
+Additional outputs:
 
-## 400-Store Robustness Check
+- `output/store_level_summary_robust400holdout.json`
+- `output/store_level_metrics_robust400holdout.csv`
+- `output/representative_residual_diagnostics.csv`
+- `output/archive/` for older experiment results
 
-The notebook has also been used to run a larger deterministic `400`-store holdout-only robustness check using the same model ladder and final holdout window.
+## Requirements
 
-- Stores evaluated: `400`
-- Holdout rows: `15,555`
-- Seasonal Naive RMSLE: `0.9209`
-- SARIMA no exog RMSLE: `0.7178`
-- Model fallbacks: `1`
-- SARIMAX holiday-only RMSLE: `0.7034`
-- SARIMA improvement vs Naive: `22.06%`
-- SARIMAX improvement vs Naive: `23.62%`
-- SARIMAX improvement vs SARIMA: `2.00%`
-- SARIMA better than Naive on `88.0%` of stores
-- SARIMAX better than Naive on `89.25%` of stores
-- SARIMAX better than SARIMA on `65.5%` of stores
+Core libraries used by the project:
 
-Interpretation:
+- `numpy`
+- `pandas`
+- `matplotlib`
+- `seaborn`
+- `plotly`
+- `folium`
+- `statsmodels`
+- `scikit-learn`
 
-- the qualitative ranking remains stable on the larger sample
-- the dominant gain remains the move from `Seasonal Naive` to `SARIMA`
-- the incremental holiday gain stays positive and remains slightly smaller than in the `250`-store main sample
+`jupyter`, `notebook`, and `ipykernel` remain in `requirements.txt` for notebook compatibility.
 
-## Representative Residual Diagnostics
+## Recommended Submission Files
 
-The notebook was also used to run representative store-level residual diagnostics for the fixed-order `SARIMA(1,1,1)(1,1,1)[7]` benchmark on six deterministic stores spanning the eligible panel.
+For grading, review, or handoff, prioritize:
 
-Summary interpretation:
-
-- for `5/6` representative stores, Ljung-Box p-values at lags `7`, `14`, and `21` remain above `0.05`
-- for `1/6` representative stores, residual dependence at seasonal lags remains statistically noticeable
-- this supports a disciplined interpretation: the common SARIMA benchmark removes most dominant weekly dependence for representative stores, but it does not produce perfectly white residuals for every case
-
-## Optional Extensions In The Notebook
-
-The final notebook also includes two optional extension blocks that are disabled by default:
-
-- a deterministic `400`-store robustness re-run using the same holdout and rolling-origin design
-- representative residual diagnostics for selected stores using the fixed-order `SARIMA(1,1,1)(1,1,1)[7]` benchmark, with residual ACF plots and Ljung-Box p-values at seasonal lags
-
-These extensions are included to strengthen the time-series argument when needed, but they are not part of the default `main250cv` final result set unless explicitly run.
-
-## Repository Structure
-
-### Main notebooks
-
-- `notebooks/01_data_understanding_eda.ipynb`: EDA and dataset understanding
-- `notebooks/02_data_cleaning_feature_engineering.ipynb`: cleaning and feature engineering
-- `notebooks/03_final_store_level_forecasting.ipynb`: final forecasting comparison
-
-### Data folders
-
-- `notebooks/raw_Data/`: original source data
-- `notebooks/processed_data/`: cleaned and transformed data used by the final notebook
-
-### Output folder
-
-- `output/`: final saved summary, metrics, validation results, and holdout predictions
-- `output/archive/`: archived legacy and non-final experiment outputs
-
-### Report folders
-
-- `report/store_level_results.md`: short grading summary
-- `report/final_report.pdf`: full report export
-
-## Important Method Notes
-
-The final notebook:
-
-- does **not** pad synthetic pre-history for stores
-- models each store only on its **observed date span**
-- fills missing days inside an observed span as `0 visitors`
-- compares `Seasonal Naive`, `SARIMA no exog`, and `SARIMAX holiday only`
-- uses one fixed `250`-store main sample for the holdout and all three CV folds
-- includes optional code paths for `400`-store robustness and representative residual diagnostics
-
-## Note For Grading
-
-Use `README.md`, the files in `report/`, the numbered notebooks, and the `*_main250cv.*` files in `output/` as the final result set.
+- `README.md`
+- `report/store_level_results.md`
+- `report/final_report.pdf`
+- `src/01_data_understanding_eda.py`
+- `src/02_data_cleaning_feature_engineering.py`
+- `src/03_final_store_level_forecasting.py`
+- `output/*main250cv*`
